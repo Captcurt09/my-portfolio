@@ -1,20 +1,43 @@
-# Curtis Dennis - Portfolio Website
+# Curtis Dennis Portfolio
 
-A modern, responsive portfolio website showcasing my journey as a Full Stack Developer. Built with React and Tailwind CSS, featuring smooth animations, interactive components, and a clean, professional design.
+A modern, responsive portfolio website showcasing my journey as a developer. Built with React and Tailwind CSS, featuring smooth animations, interactive components, and a clean, professional design.
 
-## 🚀 Live Demo
+## 🌟 Features
 
-[View my portfolio website](https://curtisdennis.com)
+- **Responsive Design**: Optimized for all devices and screen sizes
+- **Interactive Projects**: Showcase of my development work
+- **Space Tracker**: Real-time ISS tracking and visualization
+- **Planet Tracker**: Interactive solar system visualization
+- **Modern UI**: Built with React and Tailwind CSS
+- **Smooth Animations**: Enhanced user experience with fluid transitions
+- **Contact Form**: Easy way to get in touch
 
-## ✨ Features
+## 🚀 Projects
 
+### 1. Portfolio Website
+- Built with React and Tailwind CSS
 - Responsive design for all devices
 - Smooth scrolling and animations
 - Interactive project showcase
 - Contact form with validation
 - SEO optimized
-- Dark/Light mode support
-- Performance optimized
+
+### 2. ISS Tracker & Space Dashboard
+- Real-time ISS tracking
+- Interactive 3D visualization
+- Historical data analysis
+- Responsive dashboard layout
+- Live data updates
+- Built with React and Plotly.js
+- Integration with NASA APIs
+
+### 3. Solar System Planet Tracker
+- Real-time planet tracking
+- 3D orbital visualization
+- Detailed planetary information
+- Interactive controls
+- Educational content
+- Built with React and Three.js
 
 ## 🛠️ Technologies Used
 
@@ -22,64 +45,67 @@ A modern, responsive portfolio website showcasing my journey as a Full Stack Dev
 - Tailwind CSS
 - Vite
 - JavaScript
-- Framer Motion
-- React Icons
+- Three.js
+- Plotly.js
+- NASA APIs
+- WebSocket
+- Responsive Design
 
-## 📦 Installation
+## 🚀 Getting Started
 
 1. Clone the repository:
-```bash
-git clone https://github.com/Captcurt09/online-portfolio.git
-```
+   ```bash
+   git clone https://github.com/Captcurt09/my-portfolio.git
+   ```
 
-2. Navigate to the project directory:
-```bash
-cd online-portfolio
-```
+2. Install dependencies:
+   ```bash
+   cd my-portfolio
+   npm install
+   ```
 
-3. Install dependencies:
-```bash
-npm install
-```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-4. Start the development server:
-```bash
-npm run dev
-```
+4. Build for production:
+   ```bash
+   npm run build
+   ```
 
-## 🏗️ Building for Production
-
-To create a production build:
-
-```bash
-npm run build
-```
-
-## 📝 Project Structure
+## 📦 Project Structure
 
 ```
-online-portfolio/
-├── public/
-│   ├── images/
-│   └── resume.docx
+my-portfolio/
 ├── src/
-│   ├── components/
-│   │   ├── About.jsx
-│   │   ├── Contact.jsx
-│   │   ├── Footer.jsx
-│   │   ├── Hero.jsx
-│   │   ├── Navbar.jsx
-│   │   ├── Projects.jsx
-│   │   └── Skills.jsx
-│   ├── App.jsx
-│   └── main.jsx
-├── index.html
-└── package.json
+│   ├── components/     # React components
+│   ├── assets/        # Static assets
+│   └── App.jsx        # Main application component
+├── public/            # Public assets
+├── index.html         # Entry HTML file
+└── vite.config.js     # Vite configuration
 ```
 
-## 🤝 Contributing
+## 🔧 Configuration
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/Captcurt09/online-portfolio/issues).
+The project uses Vite as the build tool. Key configurations can be found in:
+- `vite.config.js` - Build and development settings
+- `tailwind.config.js` - Tailwind CSS customization
+- `package.json` - Project dependencies and scripts
+
+## 📱 Responsive Design
+
+The portfolio is fully responsive and optimized for:
+- Desktop computers
+- Tablets
+- Mobile devices
+- Different screen orientations
+
+## 🔗 Links
+
+- [Live Demo](https://captcurt09.github.io/my-portfolio/)
+- [GitHub Repository](https://github.com/Captcurt09/my-portfolio)
 
 ## 📄 License
 
@@ -87,14 +113,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Curtis Dennis**
+Curtis Dennis
 - GitHub: [@Captcurt09](https://github.com/Captcurt09)
-- LinkedIn: [Curtis Dennis](https://www.linkedin.com/in/curtis-dennis-)
 
 ## 🙏 Acknowledgments
 
-- [React](https://reactjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Vite](https://vitejs.dev/)
-- [React Icons](https://react-icons.github.io/react-icons/)
-- [Framer Motion](https://www.framer.com/motion/)
+- NASA for providing the space data APIs
+- The React and Tailwind CSS communities
+- All contributors and supporters of the project
