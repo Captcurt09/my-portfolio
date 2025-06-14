@@ -13,6 +13,13 @@ const SpaceTracker = () => {
   const [orbitPath, setOrbitPath] = useState({ lats: [], lons: [] });
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [activeTab, setActiveTab] = useState(0);
+  const [issInfo, setIssInfo] = useState({
+    crew: '7 astronauts',
+    mission: 'Expedition 71',
+    launchDate: 'March 21, 2024',
+    nextPass: 'Calculating...',
+    visibility: 'Visible'
+  });
 
   // Current ISS TLE data (updated March 2024)
   const tleLine1 = '1 25544U 98067A   24083.00000000  .00000000  00000+0  00000+0 0  9999';
@@ -23,24 +30,84 @@ const SpaceTracker = () => {
     const now = new Date();
     const positions = [];
     
-    // Simple planet positions (this is a simplified version)
+    // Enhanced planet data
     const planets = [
-      { name: 'Sun', lat: 0, lon: 0 },
-      { name: 'Moon', lat: 0, lon: 0 },
-      { name: 'Mars', lat: 0, lon: 0 },
-      { name: 'Venus', lat: 0, lon: 0 },
-      { name: 'Jupiter', lat: 0, lon: 0 },
-      { name: 'Saturn', lat: 0, lon: 0 }
+      { 
+        name: 'Sun', 
+        lat: 0, 
+        lon: 0,
+        info: {
+          type: 'Star',
+          diameter: '1,392,700 km',
+          temperature: '5,778 K',
+          age: '4.6 billion years'
+        }
+      },
+      { 
+        name: 'Moon', 
+        lat: 0, 
+        lon: 0,
+        info: {
+          type: 'Natural Satellite',
+          diameter: '3,474 km',
+          distance: '384,400 km',
+          orbitalPeriod: '27.3 days'
+        }
+      },
+      { 
+        name: 'Mars', 
+        lat: 0, 
+        lon: 0,
+        info: {
+          type: 'Terrestrial Planet',
+          diameter: '6,779 km',
+          distance: '227.9 million km',
+          orbitalPeriod: '687 days'
+        }
+      },
+      { 
+        name: 'Venus', 
+        lat: 0, 
+        lon: 0,
+        info: {
+          type: 'Terrestrial Planet',
+          diameter: '12,104 km',
+          distance: '108.2 million km',
+          orbitalPeriod: '225 days'
+        }
+      },
+      { 
+        name: 'Jupiter', 
+        lat: 0, 
+        lon: 0,
+        info: {
+          type: 'Gas Giant',
+          diameter: '139,820 km',
+          distance: '778.5 million km',
+          orbitalPeriod: '11.9 years'
+        }
+      },
+      { 
+        name: 'Saturn', 
+        lat: 0, 
+        lon: 0,
+        info: {
+          type: 'Gas Giant',
+          diameter: '116,460 km',
+          distance: '1.4 billion km',
+          orbitalPeriod: '29.5 years'
+        }
+      }
     ];
 
     // Calculate positions based on current time
     planets.forEach(planet => {
-      const time = now.getTime() / 1000; // Convert to seconds
-      const angle = (time % 360) * (Math.PI / 180); // Convert to radians
+      const time = now.getTime() / 1000;
+      const angle = (time % 360) * (Math.PI / 180);
       
       positions.push({
-        name: planet.name,
-        lat: Math.sin(angle) * 30, // Simplified orbital calculation
+        ...planet,
+        lat: Math.sin(angle) * 30,
         lon: Math.cos(angle) * 30
       });
     });
@@ -55,7 +122,7 @@ const SpaceTracker = () => {
     
     // Calculate points for the next 90 minutes (one orbit)
     for (let i = 0; i <= 90; i++) {
-      const time = new Date(now.getTime() + i * 60 * 1000); // Add i minutes
+      const time = new Date(now.getTime() + i * 60 * 1000);
       const positionAndVelocity = satellite.propagate(satrec, time);
       
       if (positionAndVelocity && positionAndVelocity.position) {
@@ -78,21 +145,16 @@ const SpaceTracker = () => {
   useEffect(() => {
     const calculatePosition = () => {
       try {
-        // Initialize satellite record
         const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
         
         if (!satrec) {
           throw new Error('Failed to initialize satellite from TLE data');
         }
         
-        // Calculate orbit path
         const path = calculateOrbitPath(satrec);
         setOrbitPath(path);
         
-        // Get current time
         const now = new Date();
-        
-        // Get position and velocity
         const positionAndVelocity = satellite.propagate(satrec, now);
         
         if (!positionAndVelocity || !positionAndVelocity.position) {
@@ -102,7 +164,6 @@ const SpaceTracker = () => {
         const gmst = satellite.gstime(now);
         const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
         
-        // Calculate speed from velocity (km/s)
         const velocity = positionAndVelocity.velocity;
         const speed = Math.sqrt(
           velocity.x * velocity.x +
@@ -110,10 +171,9 @@ const SpaceTracker = () => {
           velocity.z * velocity.z
         );
 
-        // Convert position to degrees and km
         const latitude = satellite.degreesLat(position.latitude);
         const longitude = satellite.degreesLong(position.longitude);
-        const altitude = position.height * 1000; // Convert to meters
+        const altitude = position.height * 1000;
 
         setIssPosition({
           latitude,
@@ -125,9 +185,15 @@ const SpaceTracker = () => {
         setLoading(false);
         setError(null);
 
-        // Calculate planet positions
         const planetPos = calculatePlanetPositions();
         setPlanetPositions(planetPos);
+
+        // Update ISS information
+        setIssInfo(prev => ({
+          ...prev,
+          nextPass: calculateNextPass(latitude, longitude),
+          visibility: calculateVisibility(latitude, longitude)
+        }));
       } catch (error) {
         console.error('Error calculating positions:', error);
         setError('Failed to load position data. Please try again later.');
@@ -140,6 +206,19 @@ const SpaceTracker = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const calculateNextPass = (lat, lon) => {
+    // Simplified calculation - in reality, this would be more complex
+    const now = new Date();
+    const nextPass = new Date(now.getTime() + 90 * 60 * 1000); // 90 minutes from now
+    return nextPass.toLocaleTimeString();
+  };
+
+  const calculateVisibility = (lat, lon) => {
+    // Simplified visibility calculation
+    const hour = new Date().getHours();
+    return (hour >= 18 || hour <= 6) ? 'Visible' : 'Not Visible';
+  };
 
   const createMapData = (objects, isISS = false) => {
     const colors = {
@@ -247,182 +326,144 @@ const SpaceTracker = () => {
       buttons: [{
         method: 'relayout',
         args: ['geo.projection.type', 'orthographic'],
-        label: '3D Globe',
-        font: { size: 12, color: '#ffffff' }
+        label: '3D Globe'
       }, {
         method: 'relayout',
-        args: ['geo.projection.type', 'mercator'],
-        label: 'Flat Map',
-        font: { size: 12, color: '#ffffff' }
+        args: ['geo.projection.type', 'equirectangular'],
+        label: '2D Map'
       }]
-    }],
-    height: 600,
-    margin: { t: 50, b: 20, l: 20, r: 80 },
-    dragmode: false
+    }]
   };
 
-  // Function to format large numbers with commas
   const formatNumber = (num) => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 2
+    }).format(num);
   };
 
   return (
-    <div className="space-tracker-bg" role="main" aria-label="Space Objects Tracker">
-      <div className="container mx-auto px-4 py-8">
-        <div className="glass-card bg-gradient-to-br from-white/10 to-white/5 rounded-2xl shadow-xl p-8 border border-white/20">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-white" id="space-tracker-title">
-              Space Objects Tracker
-            </h2>
-            <div className="text-sm text-blue-200">
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </div>
-          </div>
-          
-          {loading ? (
-            <div className="flex justify-center items-center h-96" role="status" aria-label="Loading position data">
-              <div className="relative">
-                <div className="w-16 h-16 border-t-4 border-b-4 border-blue-500 rounded-full animate-spin"></div>
-                <div className="w-16 h-16 border-t-4 border-b-4 border-blue-300 rounded-full animate-spin absolute top-0 left-0" style={{animationDelay: '-0.3s'}}></div>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="text-center p-4" role="alert" aria-live="assertive">
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-                <strong className="font-bold">Error: </strong>
-                <span className="block sm:inline">{error}</span>
-              </div>
-              <button 
-                onClick={() => window.location.reload()}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                aria-label="Retry loading position data"
-              >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <>
-              <Tab.Group onChange={setActiveTab}>
-                <Tab.List className="flex space-x-2 rounded-xl bg-blue-900/20 p-1 mb-8">
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5
-                      ${selected
-                        ? 'bg-white text-blue-700 shadow'
-                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                      }`
-                    }
-                  >
-                    ISS Tracker
-                  </Tab>
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5
-                      ${selected
-                        ? 'bg-white text-blue-700 shadow'
-                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                      }`
-                    }
-                  >
-                    Solar System
-                  </Tab>
-                </Tab.List>
-                <Tab.Panels>
-                  <Tab.Panel>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" role="region" aria-label="ISS Position Information">
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                        <h3 className="text-sm font-semibold text-blue-200 mb-1">Latitude</h3>
-                        <p className="text-2xl font-bold text-white">
-                          {issPosition.latitude.toFixed(2)}°N
-                        </p>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                        <h3 className="text-sm font-semibold text-blue-200 mb-1">Longitude</h3>
-                        <p className="text-2xl font-bold text-white">
-                          {issPosition.longitude.toFixed(2)}°E
-                        </p>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
-                        <h3 className="text-sm font-semibold text-blue-200 mb-1">Altitude</h3>
-                        <p className="text-2xl font-bold text-white">
-                          {formatNumber((issPosition.altitude / 1000).toFixed(2))} km
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-8 shadow-lg border border-white/20">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-sm font-semibold text-blue-200 mb-1">Orbital Speed</h3>
-                          <p className="text-xl font-bold text-white">
-                            {(speed * 3600).toFixed(2)} km/h
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-semibold text-blue-200 mb-1">Orbital Period</h3>
-                          <p className="text-xl font-bold text-white">~92 minutes</p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-semibold text-blue-200 mb-1">Mass</h3>
-                          <p className="text-xl font-bold text-white">419,725 kg</p>
-                        </div>
-                      </div>
-                    </div>
-                  </Tab.Panel>
-                  <Tab.Panel>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-8 shadow-lg border border-white/20">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {planetPositions.map((planet, index) => (
-                          <div key={index} className="bg-white/5 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-blue-200">{planet.name}</h3>
-                            <p className="text-white">Lat: {planet.lat.toFixed(2)}°</p>
-                            <p className="text-white">Lon: {planet.lon.toFixed(2)}°</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </Tab.Panel>
-                </Tab.Panels>
-              </Tab.Group>
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <div className="max-w-7xl mx-auto">
+        <Tab.Group onChange={setActiveTab}>
+          <Tab.List className="flex space-x-4 mb-4">
+            <Tab className={({ selected }) =>
+              `px-4 py-2 rounded-lg ${
+                selected
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`
+            }>
+              ISS Tracker
+            </Tab>
+            <Tab className={({ selected }) =>
+              `px-4 py-2 rounded-lg ${
+                selected
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`
+            }>
+              Solar System
+            </Tab>
+          </Tab.List>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 overflow-hidden">
-                <Plot
-                  data={activeTab === 0 
-                    ? [
-                        ...createMapData([{ name: 'ISS', lat: issPosition.latitude, lon: issPosition.longitude }], true),
+          <Tab.Panels>
+            <Tab.Panel>
+              {loading ? (
+                <div className="flex justify-center items-center h-96">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : error ? (
+                <div className="text-red-500 text-center">{error}</div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold mb-2">Current Position</h3>
+                      <p>Latitude: {formatNumber(issPosition.latitude)}°</p>
+                      <p>Longitude: {formatNumber(issPosition.longitude)}°</p>
+                      <p>Altitude: {formatNumber(issPosition.altitude)} km</p>
+                    </div>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold mb-2">Speed</h3>
+                      <p>{formatNumber(speed)} km/s</p>
+                      <p>{formatNumber(speed * 3600)} km/h</p>
+                    </div>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold mb-2">Mission Info</h3>
+                      <p>Crew: {issInfo.crew}</p>
+                      <p>Mission: {issInfo.mission}</p>
+                      <p>Launch: {issInfo.launchDate}</p>
+                    </div>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold mb-2">Visibility</h3>
+                      <p>Next Pass: {issInfo.nextPass}</p>
+                      <p>Status: {issInfo.visibility}</p>
+                      <p>Last Updated: {lastUpdated.toLocaleTimeString()}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-800 p-4 rounded-lg">
+                    <Plot
+                      data={[
+                        ...createMapData([{ name: 'ISS', ...issPosition }], true),
                         {
                           type: 'scattergeo',
                           lon: orbitPath.lons,
                           lat: orbitPath.lats,
                           mode: 'lines',
                           line: {
-                            color: 'rgba(96, 165, 250, 0.3)',
+                            color: '#60A5FA',
                             width: 2
                           },
-                          name: 'Orbit Path',
-                          hoverinfo: 'skip'
+                          name: 'Orbit Path'
                         }
-                      ]
-                    : createMapData(planetPositions)
-                  }
-                  layout={layout}
-                  config={{
-                    responsive: true,
-                    displayModeBar: false,
-                    scrollZoom: false
-                  }}
-                  className="w-full"
-                  style={{ minHeight: '600px' }}
-                  onRelayout={(eventdata) => {
-                    if (eventdata['geo.projection.type']) {
-                      setMapType(eventdata['geo.projection.type']);
-                    }
-                  }}
-                />
+                      ]}
+                      layout={layout}
+                      style={{ width: '100%', height: '600px' }}
+                      config={{ responsive: true }}
+                    />
+                  </div>
+                </div>
+              )}
+            </Tab.Panel>
+
+            <Tab.Panel>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {planetPositions.map((planet, index) => (
+                    <div key={index} className="bg-gray-800 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold mb-2">{planet.name}</h3>
+                      <div className="space-y-2">
+                        <p>Type: {planet.info.type}</p>
+                        <p>Diameter: {planet.info.diameter}</p>
+                        {planet.info.distance && <p>Distance: {planet.info.distance}</p>}
+                        {planet.info.orbitalPeriod && <p>Orbital Period: {planet.info.orbitalPeriod}</p>}
+                        {planet.info.temperature && <p>Temperature: {planet.info.temperature}</p>}
+                        {planet.info.age && <p>Age: {planet.info.age}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <Plot
+                    data={createMapData(planetPositions)}
+                    layout={{
+                      ...layout,
+                      geo: {
+                        ...layout.geo,
+                        center: { lon: 0, lat: 0 },
+                        zoom: 1
+                      }
+                    }}
+                    style={{ width: '100%', height: '600px' }}
+                    config={{ responsive: true }}
+                  />
+                </div>
               </div>
-            </>
-          )}
-        </div>
+            </Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
       </div>
     </div>
   );
