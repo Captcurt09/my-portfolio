@@ -26,93 +26,118 @@ const SpaceTracker = () => {
   const tleLine1 = '1 25544U 98067A   24083.00000000  .00000000  00000+0  00000+0 0  9999';
   const tleLine2 = '2 25544  51.6400 352.1000 0001000 330.0000 30.0000 15.50130000000000';
 
-  // Calculate planet positions
+  const planetData = [
+    {
+      name: 'Sun',
+      type: 'Star',
+      diameter: '1,392,700 km',
+      temperature: '5,778 K',
+      age: '4.6 billion years',
+      color: '#FFD700',
+      size: 20
+    },
+    {
+      name: 'Mercury',
+      type: 'Terrestrial',
+      diameter: '4,879 km',
+      distance: '57.9 million km',
+      orbitalPeriod: '88 days',
+      color: '#A0522D',
+      size: 5
+    },
+    {
+      name: 'Venus',
+      type: 'Terrestrial',
+      diameter: '12,104 km',
+      distance: '108.2 million km',
+      orbitalPeriod: '225 days',
+      color: '#DEB887',
+      size: 8
+    },
+    {
+      name: 'Earth',
+      type: 'Terrestrial',
+      diameter: '12,742 km',
+      distance: '149.6 million km',
+      orbitalPeriod: '365 days',
+      color: '#4169E1',
+      size: 9
+    },
+    {
+      name: 'Mars',
+      type: 'Terrestrial',
+      diameter: '6,779 km',
+      distance: '227.9 million km',
+      orbitalPeriod: '687 days',
+      color: '#CD5C5C',
+      size: 7
+    },
+    {
+      name: 'Jupiter',
+      type: 'Gas Giant',
+      diameter: '139,820 km',
+      distance: '778.5 million km',
+      orbitalPeriod: '4,333 days',
+      color: '#DAA520',
+      size: 15
+    },
+    {
+      name: 'Saturn',
+      type: 'Gas Giant',
+      diameter: '116,460 km',
+      distance: '1.4 billion km',
+      orbitalPeriod: '10,759 days',
+      color: '#F4A460',
+      size: 14
+    },
+    {
+      name: 'Uranus',
+      type: 'Ice Giant',
+      diameter: '50,724 km',
+      distance: '2.9 billion km',
+      orbitalPeriod: '30,687 days',
+      color: '#87CEEB',
+      size: 12
+    },
+    {
+      name: 'Neptune',
+      type: 'Ice Giant',
+      diameter: '49,244 km',
+      distance: '4.5 billion km',
+      orbitalPeriod: '60,190 days',
+      color: '#1E90FF',
+      size: 12
+    }
+  ];
+
   const calculatePlanetPositions = () => {
     const now = new Date();
-    const positions = [];
-    
-    // Enhanced planet data
-    const planets = [
-      { 
-        name: 'Sun', 
-        lat: 0, 
-        lon: 0,
-        info: {
-          type: 'Star',
-          diameter: '1,392,700 km',
-          temperature: '5,778 K',
-          age: '4.6 billion years'
-        }
-      },
-      { 
-        name: 'Moon', 
-        lat: 0, 
-        lon: 0,
-        info: {
-          type: 'Natural Satellite',
-          diameter: '3,474 km',
-          distance: '384,400 km',
-          orbitalPeriod: '27.3 days'
-        }
-      },
-      { 
-        name: 'Mars', 
-        lat: 0, 
-        lon: 0,
-        info: {
-          type: 'Terrestrial Planet',
-          diameter: '6,779 km',
-          distance: '227.9 million km',
-          orbitalPeriod: '687 days'
-        }
-      },
-      { 
-        name: 'Venus', 
-        lat: 0, 
-        lon: 0,
-        info: {
-          type: 'Terrestrial Planet',
-          diameter: '12,104 km',
-          distance: '108.2 million km',
-          orbitalPeriod: '225 days'
-        }
-      },
-      { 
-        name: 'Jupiter', 
-        lat: 0, 
-        lon: 0,
-        info: {
-          type: 'Gas Giant',
-          diameter: '139,820 km',
-          distance: '778.5 million km',
-          orbitalPeriod: '11.9 years'
-        }
-      },
-      { 
-        name: 'Saturn', 
-        lat: 0, 
-        lon: 0,
-        info: {
-          type: 'Gas Giant',
-          diameter: '116,460 km',
-          distance: '1.4 billion km',
-          orbitalPeriod: '29.5 years'
-        }
-      }
-    ];
-
-    // Calculate positions based on current time
-    planets.forEach(planet => {
-      const time = now.getTime() / 1000;
-      const angle = (time % 360) * (Math.PI / 180);
+    const positions = planetData.map(planet => {
+      // Calculate position based on orbital period
+      const orbitalPeriod = planet.orbitalPeriod ? parseInt(planet.orbitalPeriod) : 365;
+      const angle = (now.getTime() / (orbitalPeriod * 24 * 60 * 60 * 1000)) * 2 * Math.PI;
       
-      positions.push({
-        ...planet,
-        lat: Math.sin(angle) * 30,
-        lon: Math.cos(angle) * 30
-      });
+      // Scale the distance for visualization
+      const distance = planet.distance ? 
+        parseInt(planet.distance.split(' ')[0]) / 1000000 : // Convert to millions of km
+        (planet.name === 'Sun' ? 0 : 50 + Math.random() * 50);
+      
+      return {
+        name: planet.name,
+        latitude: Math.sin(angle) * distance,
+        longitude: Math.cos(angle) * distance,
+        info: {
+          type: planet.type,
+          diameter: planet.diameter,
+          distance: planet.distance,
+          orbitalPeriod: planet.orbitalPeriod,
+          temperature: planet.temperature,
+          age: planet.age
+        },
+        color: planet.color,
+        size: planet.size
+      };
     });
-
     return positions;
   };
 
@@ -222,44 +247,22 @@ const SpaceTracker = () => {
   };
 
   const createMapData = (objects, isISS = false) => {
-    const colors = {
-      'ISS': '#60A5FA',
-      'Sun': '#FCD34D',
-      'Moon': '#E5E7EB',
-      'Mars': '#EF4444',
-      'Venus': '#F97316',
-      'Jupiter': '#B45309',
-      'Saturn': '#F59E0B'
-    };
-
     return objects.map(obj => ({
       type: 'scattergeo',
-      lon: [obj.lon],
-      lat: [obj.lat],
-      mode: 'markers+text',
-      text: [obj.name],
-      textposition: 'top center',
-      textfont: {
-        family: 'Inter, system-ui, sans-serif',
-        size: 14,
-        color: '#ffffff'
-      },
+      lon: [obj.longitude],
+      lat: [obj.latitude],
+      mode: 'markers',
       marker: {
-        size: obj.name === 'ISS' ? 18 : 15,
-        color: colors[obj.name] || '#ffffff',
-        symbol: obj.name === 'ISS' ? 'star' : 'circle',
+        size: isISS ? 10 : obj.size,
+        color: isISS ? '#FF0000' : obj.color,
         line: {
-          color: obj.name === 'ISS' ? '#93C5FD' : '#ffffff',
+          color: '#FFFFFF',
           width: 2
         }
       },
       name: obj.name,
-      hoverinfo: 'text',
-      hoverlabel: {
-        bgcolor: '#1E40AF',
-        bordercolor: colors[obj.name] || '#ffffff',
-        font: { color: '#ffffff' }
-      }
+      text: [`${obj.name}<br>${obj.info.type}<br>${obj.info.diameter}`],
+      hoverinfo: 'text'
     }));
   };
 
@@ -503,9 +506,15 @@ const SpaceTracker = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {planetPositions.map((planet, index) => (
                     <div key={index} className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
-                      <h3 className="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                        {planet.name}
-                      </h3>
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: planet.color }}
+                        ></div>
+                        <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                          {planet.name}
+                        </h3>
+                      </div>
                       <div className="space-y-3 text-gray-300">
                         <p className="flex justify-between">
                           <span>Type:</span>
@@ -552,7 +561,17 @@ const SpaceTracker = () => {
                       geo: {
                         ...layout.geo,
                         center: { lon: 0, lat: 0 },
-                        zoom: 1
+                        zoom: 1,
+                        projection: {
+                          type: 'orthographic'
+                        }
+                      },
+                      title: {
+                        text: 'Solar System View',
+                        font: {
+                          size: 24,
+                          color: '#FFFFFF'
+                        }
                       }
                     }}
                     style={{ width: '100%', height: '600px' }}
