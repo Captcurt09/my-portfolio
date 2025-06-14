@@ -262,18 +262,30 @@ const SpaceTracker = () => {
         type: 'scattergeo',
         lon: [obj.longitude],
         lat: [obj.latitude],
-        mode: 'markers',
+        mode: isISS ? 'markers+text' : 'markers',
+        text: isISS ? ['ISS'] : [`${obj.name}<br>${obj.info.type}<br>${obj.info.diameter}`],
+        textposition: isISS ? 'top center' : undefined,
+        textfont: isISS ? {
+          family: 'Inter, system-ui, sans-serif',
+          size: 16,
+          color: '#ffffff'
+        } : undefined,
         marker: {
-          size: isISS ? 10 : obj.size,
+          size: isISS ? 15 : obj.size,
           color: isISS ? '#FF0000' : obj.color,
+          symbol: isISS ? 'star' : 'circle',
           line: {
-            color: '#FFFFFF',
+            color: isISS ? '#FFD700' : '#FFFFFF',
             width: 2
           }
         },
         name: obj.name,
-        text: [`${obj.name}<br>${obj.info.type}<br>${obj.info.diameter}`],
-        hoverinfo: 'text'
+        hoverinfo: 'text',
+        hoverlabel: {
+          bgcolor: '#1E40AF',
+          bordercolor: isISS ? '#FF0000' : obj.color,
+          font: { color: '#ffffff' }
+        }
       }));
     } catch (error) {
       console.error('Error creating map data:', error);
@@ -511,12 +523,74 @@ const SpaceTracker = () => {
                           mode: 'lines',
                           line: {
                             color: '#60A5FA',
-                            width: 2
+                            width: 3,
+                            dash: 'dot'
                           },
-                          name: 'Orbit Path'
+                          name: 'Orbit Path',
+                          hoverinfo: 'skip'
+                        },
+                        {
+                          type: 'scattergeo',
+                          lon: [issPosition.longitude],
+                          lat: [issPosition.latitude],
+                          mode: 'markers',
+                          marker: {
+                            size: 20,
+                            color: 'rgba(255, 0, 0, 0.3)',
+                            symbol: 'circle',
+                            line: {
+                              color: '#FF0000',
+                              width: 2
+                            }
+                          },
+                          name: 'Current Location',
+                          hoverinfo: 'skip'
                         }
                       ]}
-                      layout={layout}
+                      layout={{
+                        ...layout,
+                        geo: {
+                          ...layout.geo,
+                          projection: {
+                            ...layout.geo.projection,
+                            scale: 1.2
+                          },
+                          showland: true,
+                          showocean: true,
+                          showcoastlines: true,
+                          showcountries: true,
+                          showlakes: true,
+                          showrivers: true,
+                          resolution: 50,
+                          oceancolor: 'rgb(32, 98, 149)',
+                          landcolor: 'rgb(49, 68, 78)',
+                          countrycolor: 'rgb(204, 204, 204)',
+                          coastlinecolor: 'rgb(204, 204, 204)',
+                          rivercolor: 'rgb(55, 126, 184)',
+                          lakecolor: 'rgb(32, 98, 149)',
+                          bgcolor: 'rgba(0,0,0,0)',
+                          framecolor: '#60A5FA',
+                          framewidth: 2,
+                          showframe: true,
+                          lataxis: {
+                            showgrid: true,
+                            gridcolor: 'rgba(204, 204, 204, 0.25)',
+                            gridwidth: 0.5,
+                            range: [-90, 90]
+                          },
+                          lonaxis: {
+                            showgrid: true,
+                            gridcolor: 'rgba(204, 204, 204, 0.25)',
+                            gridwidth: 0.5,
+                            range: [-180, 180]
+                          },
+                          center: {
+                            lon: issPosition.longitude,
+                            lat: issPosition.latitude
+                          },
+                          zoom: 1.5
+                        }
+                      }}
                       style={{ width: '100%', height: '600px' }}
                       config={{ responsive: true }}
                     />
