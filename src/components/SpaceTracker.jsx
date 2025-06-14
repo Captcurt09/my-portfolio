@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import * as satellite from 'satellite.js';
 import { Tab } from '@headlessui/react';
+import { FaSatellite, FaGlobe, FaRocket, FaClock, FaEye, FaInfoCircle } from 'react-icons/fa';
 
 const SpaceTracker = () => {
   const [issPosition, setIssPosition] = useState({ latitude: 0, longitude: 0, altitude: 0 });
@@ -342,27 +343,36 @@ const SpaceTracker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900 text-white p-4">
       <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            Space Objects Tracker
+          </h1>
+          <p className="text-gray-300">Real-time tracking of the ISS and solar system objects</p>
+        </div>
+
         <Tab.Group onChange={setActiveTab}>
-          <Tab.List className="flex space-x-4 mb-4">
+          <Tab.List className="flex space-x-4 mb-8 justify-center">
             <Tab className={({ selected }) =>
-              `px-4 py-2 rounded-lg ${
+              `px-6 py-3 rounded-lg flex items-center space-x-2 transition-all duration-200 ${
                 selected
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`
             }>
-              ISS Tracker
+              <FaSatellite className="text-lg" />
+              <span>ISS Tracker</span>
             </Tab>
             <Tab className={({ selected }) =>
-              `px-4 py-2 rounded-lg ${
+              `px-6 py-3 rounded-lg flex items-center space-x-2 transition-all duration-200 ${
                 selected
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`
             }>
-              Solar System
+              <FaGlobe className="text-lg" />
+              <span>Solar System</span>
             </Tab>
           </Tab.List>
 
@@ -370,39 +380,100 @@ const SpaceTracker = () => {
             <Tab.Panel>
               {loading ? (
                 <div className="flex justify-center items-center h-96">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                  <div className="relative">
+                    <div className="w-16 h-16 border-t-4 border-b-4 border-blue-500 rounded-full animate-spin"></div>
+                    <div className="w-16 h-16 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin absolute top-0 left-0" style={{animationDelay: '-0.3s'}}></div>
+                  </div>
                 </div>
               ) : error ? (
-                <div className="text-red-500 text-center">{error}</div>
+                <div className="text-red-500 text-center bg-red-900/50 p-4 rounded-lg">{error}</div>
               ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-gray-800 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-2">Current Position</h3>
-                      <p>Latitude: {formatNumber(issPosition.latitude)}°</p>
-                      <p>Longitude: {formatNumber(issPosition.longitude)}°</p>
-                      <p>Altitude: {formatNumber(issPosition.altitude)} km</p>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <FaSatellite className="text-2xl text-blue-400" />
+                        <h3 className="text-xl font-semibold">Current Position</h3>
+                      </div>
+                      <div className="space-y-2 text-gray-300">
+                        <p className="flex justify-between">
+                          <span>Latitude:</span>
+                          <span className="font-mono">{formatNumber(issPosition.latitude)}°</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Longitude:</span>
+                          <span className="font-mono">{formatNumber(issPosition.longitude)}°</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Altitude:</span>
+                          <span className="font-mono">{formatNumber(issPosition.altitude)} km</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="bg-gray-800 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-2">Speed</h3>
-                      <p>{formatNumber(speed)} km/s</p>
-                      <p>{formatNumber(speed * 3600)} km/h</p>
+
+                    <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <FaRocket className="text-2xl text-blue-400" />
+                        <h3 className="text-xl font-semibold">Speed</h3>
+                      </div>
+                      <div className="space-y-2 text-gray-300">
+                        <p className="flex justify-between">
+                          <span>Current:</span>
+                          <span className="font-mono">{formatNumber(speed)} km/s</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Per Hour:</span>
+                          <span className="font-mono">{formatNumber(speed * 3600)} km/h</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="bg-gray-800 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-2">Mission Info</h3>
-                      <p>Crew: {issInfo.crew}</p>
-                      <p>Mission: {issInfo.mission}</p>
-                      <p>Launch: {issInfo.launchDate}</p>
+
+                    <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <FaInfoCircle className="text-2xl text-blue-400" />
+                        <h3 className="text-xl font-semibold">Mission Info</h3>
+                      </div>
+                      <div className="space-y-2 text-gray-300">
+                        <p className="flex justify-between">
+                          <span>Crew:</span>
+                          <span>{issInfo.crew}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Mission:</span>
+                          <span>{issInfo.mission}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Launch:</span>
+                          <span>{issInfo.launchDate}</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="bg-gray-800 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-2">Visibility</h3>
-                      <p>Next Pass: {issInfo.nextPass}</p>
-                      <p>Status: {issInfo.visibility}</p>
-                      <p>Last Updated: {lastUpdated.toLocaleTimeString()}</p>
+
+                    <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <FaEye className="text-2xl text-blue-400" />
+                        <h3 className="text-xl font-semibold">Visibility</h3>
+                      </div>
+                      <div className="space-y-2 text-gray-300">
+                        <p className="flex justify-between">
+                          <span>Next Pass:</span>
+                          <span>{issInfo.nextPass}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Status:</span>
+                          <span className={issInfo.visibility === 'Visible' ? 'text-green-400' : 'text-red-400'}>
+                            {issInfo.visibility}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Updated:</span>
+                          <span>{lastUpdated.toLocaleTimeString()}</span>
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
                     <Plot
                       data={[
                         ...createMapData([{ name: 'ISS', ...issPosition }], true),
@@ -428,24 +499,52 @@ const SpaceTracker = () => {
             </Tab.Panel>
 
             <Tab.Panel>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {planetPositions.map((planet, index) => (
-                    <div key={index} className="bg-gray-800 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-2">{planet.name}</h3>
-                      <div className="space-y-2">
-                        <p>Type: {planet.info.type}</p>
-                        <p>Diameter: {planet.info.diameter}</p>
-                        {planet.info.distance && <p>Distance: {planet.info.distance}</p>}
-                        {planet.info.orbitalPeriod && <p>Orbital Period: {planet.info.orbitalPeriod}</p>}
-                        {planet.info.temperature && <p>Temperature: {planet.info.temperature}</p>}
-                        {planet.info.age && <p>Age: {planet.info.age}</p>}
+                    <div key={index} className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
+                      <h3 className="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                        {planet.name}
+                      </h3>
+                      <div className="space-y-3 text-gray-300">
+                        <p className="flex justify-between">
+                          <span>Type:</span>
+                          <span>{planet.info.type}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Diameter:</span>
+                          <span>{planet.info.diameter}</span>
+                        </p>
+                        {planet.info.distance && (
+                          <p className="flex justify-between">
+                            <span>Distance:</span>
+                            <span>{planet.info.distance}</span>
+                          </p>
+                        )}
+                        {planet.info.orbitalPeriod && (
+                          <p className="flex justify-between">
+                            <span>Orbital Period:</span>
+                            <span>{planet.info.orbitalPeriod}</span>
+                          </p>
+                        )}
+                        {planet.info.temperature && (
+                          <p className="flex justify-between">
+                            <span>Temperature:</span>
+                            <span>{planet.info.temperature}</span>
+                          </p>
+                        )}
+                        {planet.info.age && (
+                          <p className="flex justify-between">
+                            <span>Age:</span>
+                            <span>{planet.info.age}</span>
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-gray-800 p-4 rounded-lg">
+                <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
                   <Plot
                     data={createMapData(planetPositions)}
                     layout={{
