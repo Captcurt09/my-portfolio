@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#1a1a2e"/>
+  
+  <!-- Earth -->
+  <circle cx="400" cy="300" r="150" fill="#4299e1" opacity="0.8"/>
+  <circle cx="400" cy="300" r="145" fill="#2b6cb0" opacity="0.6"/>
+  
+  <!-- Orbit path -->
+  <ellipse cx="400" cy="300" rx="250" ry="150" fill="none" stroke="#718096" stroke-width="2" stroke-dasharray="4,4"/>
+  
+  <!-- ISS -->
+  <circle cx="600" cy="250" r="8" fill="#f56565"/>
+  <circle cx="600" cy="250" r="12" fill="#f56565" opacity="0.3"/>
+  
+  <!-- Data panel -->
+  <rect x="50" y="50" width="200" height="120" rx="8" fill="#2d3748" opacity="0.9"/>
+  <rect x="70" y="70" width="160" height="20" rx="4" fill="#718096"/>
+  <rect x="70" y="100" width="140" height="20" rx="4" fill="#718096"/>
+  <rect x="70" y="130" width="120" height="20" rx="4" fill="#718096"/>
+  
+  <!-- Coordinates -->
+  <rect x="550" y="50" width="200" height="100" rx="8" fill="#2d3748" opacity="0.9"/>
+  <rect x="570" y="70" width="160" height="20" rx="4" fill="#718096"/>
+  <rect x="570" y="100" width="140" height="20" rx="4" fill="#718096"/>
+  
+  <!-- Grid lines -->
+  <line x1="0" y1="300" x2="800" y2="300" stroke="#4a5568" stroke-width="1" opacity="0.3"/>
+  <line x1="400" y1="0" x2="400" y2="600" stroke="#4a5568" stroke-width="1" opacity="0.3"/>
+</svg> 
