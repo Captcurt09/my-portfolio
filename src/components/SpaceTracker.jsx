@@ -295,7 +295,7 @@ const SpaceTracker = () => {
 
   const layout = {
     title: {
-      text: activeTab === 0 ? 'International Space Station Live Tracker' : 'Solar System Objects',
+      text: 'International Space Station Live Tracker',
       font: {
         family: 'Inter, system-ui, sans-serif',
         size: 24,
@@ -307,63 +307,39 @@ const SpaceTracker = () => {
     plot_bgcolor: 'rgba(0,0,0,0)',
     geo: {
       projection: {
-        type: mapType,
+        type: 'orthographic',
         rotation: {
           lon: issPosition.longitude,
           lat: issPosition.latitude,
           roll: 0
-        }
+        },
+        scale: 1.2
       },
       showland: true,
       showocean: true,
       showcoastlines: true,
       showcountries: true,
-      showlakes: true,
-      showrivers: true,
-      resolution: 50,
       oceancolor: 'rgb(32, 98, 149)',
       landcolor: 'rgb(49, 68, 78)',
-      countrycolor: 'rgb(204, 204, 204)',
-      coastlinecolor: 'rgb(204, 204, 204)',
-      rivercolor: 'rgb(55, 126, 184)',
-      lakecolor: 'rgb(32, 98, 149)',
-      bgcolor: 'rgba(0,0,0,0)',
-      framecolor: '#60A5FA',
-      framewidth: 1,
-      showframe: true,
+      countrycolor: 'rgba(204,204,204,0.5)',
+      coastlinecolor: 'rgba(204,204,204,0.3)',
       lataxis: {
         showgrid: true,
-        gridcolor: 'rgba(204, 204, 204, 0.25)',
+        gridcolor: 'rgba(204, 204, 204, 0.10)',
         gridwidth: 0.5,
         range: [-90, 90]
       },
       lonaxis: {
         showgrid: true,
-        gridcolor: 'rgba(204, 204, 204, 0.25)',
+        gridcolor: 'rgba(204, 204, 204, 0.10)',
         gridwidth: 0.5,
         range: [-180, 180]
       },
-      center: {
-        lon: issPosition.longitude,
-        lat: issPosition.latitude
-      },
-      zoom: 1.5
-    },
-    updatemenus: [{
-      type: 'buttons',
-      showactive: true,
-      y: 0.8,
-      x: 1.1,
-      buttons: [{
-        method: 'relayout',
-        args: ['geo.projection.type', 'orthographic'],
-        label: '3D Globe'
-      }, {
-        method: 'relayout',
-        args: ['geo.projection.type', 'equirectangular'],
-        label: '2D Map'
-      }]
-    }]
+      bgcolor: 'rgba(0,0,0,0)',
+      framecolor: 'rgba(0,0,0,0)',
+      framewidth: 0,
+      showframe: false
+    }
   };
 
   if (error) {
@@ -513,87 +489,51 @@ const SpaceTracker = () => {
                   </div>
 
                   <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
-                    <Plot
-                      data={[
-                        ...createMapData([{ name: 'ISS', ...issPosition }], true),
-                        {
-                          type: 'scattergeo',
-                          lon: orbitPath.lons,
-                          lat: orbitPath.lats,
-                          mode: 'lines',
-                          line: {
-                            color: '#60A5FA',
-                            width: 3,
-                            dash: 'dot'
-                          },
-                          name: 'Orbit Path',
-                          hoverinfo: 'skip'
-                        },
-                        {
-                          type: 'scattergeo',
-                          lon: [issPosition.longitude],
-                          lat: [issPosition.latitude],
-                          mode: 'markers',
-                          marker: {
-                            size: 20,
-                            color: 'rgba(255, 0, 0, 0.3)',
-                            symbol: 'circle',
-                            line: {
-                              color: '#FF0000',
-                              width: 2
-                            }
-                          },
-                          name: 'Current Location',
-                          hoverinfo: 'skip'
-                        }
-                      ]}
-                      layout={{
-                        ...layout,
-                        geo: {
-                          ...layout.geo,
-                          projection: {
-                            ...layout.geo.projection,
-                            scale: 1.2
-                          },
-                          showland: true,
-                          showocean: true,
-                          showcoastlines: true,
-                          showcountries: true,
-                          showlakes: true,
-                          showrivers: true,
-                          resolution: 50,
-                          oceancolor: 'rgb(32, 98, 149)',
-                          landcolor: 'rgb(49, 68, 78)',
-                          countrycolor: 'rgb(204, 204, 204)',
-                          coastlinecolor: 'rgb(204, 204, 204)',
-                          rivercolor: 'rgb(55, 126, 184)',
-                          lakecolor: 'rgb(32, 98, 149)',
-                          bgcolor: 'rgba(0,0,0,0)',
-                          framecolor: '#60A5FA',
-                          framewidth: 2,
-                          showframe: true,
-                          lataxis: {
-                            showgrid: true,
-                            gridcolor: 'rgba(204, 204, 204, 0.25)',
-                            gridwidth: 0.5,
-                            range: [-90, 90]
-                          },
-                          lonaxis: {
-                            showgrid: true,
-                            gridcolor: 'rgba(204, 204, 204, 0.25)',
-                            gridwidth: 0.5,
-                            range: [-180, 180]
-                          },
-                          center: {
-                            lon: issPosition.longitude,
-                            lat: issPosition.latitude
-                          },
-                          zoom: 1.5
-                        }
-                      }}
-                      style={{ width: '100%', height: '600px' }}
-                      config={{ responsive: true }}
-                    />
+                    <div className="flex justify-center items-center" style={{ minHeight: 600 }}>
+                      <div className="relative flex justify-center items-center" style={{ width: 600, height: 600 }}>
+                        <div className="absolute inset-0 rounded-full shadow-[0_0_60px_20px_rgba(96,165,250,0.4)] pointer-events-none"></div>
+                        <div className="bg-transparent rounded-full overflow-hidden" style={{ width: 600, height: 600 }}>
+                          <Plot
+                            data={[
+                              ...createMapData([{ name: 'ISS', ...issPosition }], true),
+                              {
+                                type: 'scattergeo',
+                                lon: orbitPath.lons,
+                                lat: orbitPath.lats,
+                                mode: 'lines',
+                                line: {
+                                  color: '#60A5FA',
+                                  width: 3,
+                                  dash: 'dot'
+                                },
+                                name: 'Orbit Path',
+                                hoverinfo: 'skip'
+                              },
+                              {
+                                type: 'scattergeo',
+                                lon: [issPosition.longitude],
+                                lat: [issPosition.latitude],
+                                mode: 'markers',
+                                marker: {
+                                  size: 20,
+                                  color: 'rgba(255, 0, 0, 0.3)',
+                                  symbol: 'circle',
+                                  line: {
+                                    color: '#FF0000',
+                                    width: 2
+                                  }
+                                },
+                                name: 'Current Location',
+                                hoverinfo: 'skip'
+                              }
+                            ]}
+                            layout={layout}
+                            style={{ width: '100%', height: '100%' }}
+                            config={{ responsive: true }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
