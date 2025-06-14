@@ -6,24 +6,15 @@ import { FaSatellite, FaGlobe, FaRocket, FaClock, FaEye, FaInfoCircle } from 're
 
 const SpaceTracker = () => {
   const [issPosition, setIssPosition] = useState({ latitude: 0, longitude: 0, altitude: 0 });
-  const [planetPositions, setPlanetPositions] = useState([]);
+  const [speed, setSpeed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [speed, setSpeed] = useState(0);
-  const [mapType, setMapType] = useState('orthographic');
-  const [orbitPath, setOrbitPath] = useState({ lats: [], lons: [] });
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [activeTab, setActiveTab] = useState(0);
-  const [issInfo, setIssInfo] = useState({
-    crew: '7 astronauts',
-    mission: 'Expedition 71',
-    launchDate: 'March 21, 2024',
-    nextPass: 'Calculating...',
-    visibility: 'Visible'
-  });
+  const [planetPositions, setPlanetPositions] = useState([]);
 
-  // Current ISS TLE data (updated March 2024)
-  const tleLine1 = '1 25544U 98067A   24083.00000000  .00000000  00000+0  00000+0 0  9999';
+  // ISS TLE data
+  const tleLine1 = '1 25544U 98067A   24054.91666667  .00016717  00000+0  31279-3 0  9992';
   const tleLine2 = '2 25544  51.6400 352.1000 0001000 330.0000 30.0000 15.50130000000000';
 
   const planetData = [
@@ -111,239 +102,161 @@ const SpaceTracker = () => {
   ];
 
   const calculatePlanetPositions = () => {
-    const now = new Date();
-    const positions = planetData.map(planet => {
-      // Calculate position based on orbital period
-      const orbitalPeriod = planet.orbitalPeriod ? parseInt(planet.orbitalPeriod) : 365;
-      const angle = (now.getTime() / (orbitalPeriod * 24 * 60 * 60 * 1000)) * 2 * Math.PI;
-      
-      // Scale the distance for visualization
-      const distance = planet.distance ? 
-        parseInt(planet.distance.split(' ')[0]) / 1000000 : // Convert to millions of km
-        (planet.name === 'Sun' ? 0 : 50 + Math.random() * 50);
-      
-      return {
-        name: planet.name,
-        latitude: Math.sin(angle) * distance,
-        longitude: Math.cos(angle) * distance,
-        info: {
-          type: planet.type,
-          diameter: planet.diameter,
-          distance: planet.distance,
-          orbitalPeriod: planet.orbitalPeriod,
-          temperature: planet.temperature,
-          age: planet.age
-        },
-        color: planet.color,
-        size: planet.size
-      };
-    });
-    return positions;
+    try {
+      const now = new Date();
+      const positions = planetData.map(planet => {
+        const orbitalPeriod = planet.orbitalPeriod ? parseInt(planet.orbitalPeriod) : 365;
+        const angle = (now.getTime() / (orbitalPeriod * 24 * 60 * 60 * 1000)) * 2 * Math.PI;
+        
+        const distance = planet.distance ? 
+          parseInt(planet.distance.split(' ')[0]) / 1000000 : 
+          (planet.name === 'Sun' ? 0 : 50 + Math.random() * 50);
+        
+        return {
+          name: planet.name,
+          latitude: Math.sin(angle) * distance,
+          longitude: Math.cos(angle) * distance,
+          info: {
+            type: planet.type,
+            diameter: planet.diameter,
+            distance: planet.distance,
+            orbitalPeriod: planet.orbitalPeriod,
+            temperature: planet.temperature,
+            age: planet.age
+          },
+          color: planet.color,
+          size: planet.size
+        };
+      });
+      return positions;
+    } catch (error) {
+      console.error('Error calculating planet positions:', error);
+      return [];
+    }
   };
 
-  // Calculate orbit path
-  const calculateOrbitPath = (satrec) => {
-    const now = new Date();
-    const pathPoints = [];
-    
-    // Calculate points for the next 90 minutes (one orbit)
-    for (let i = 0; i <= 90; i++) {
-      const time = new Date(now.getTime() + i * 60 * 1000);
-      const positionAndVelocity = satellite.propagate(satrec, time);
+  const updateISS = () => {
+    try {
+      const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+      const now = new Date();
+      const positionAndVelocity = satellite.propagate(satrec, now);
       
-      if (positionAndVelocity && positionAndVelocity.position) {
-        const gmst = satellite.gstime(time);
-        const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+      if (positionAndVelocity.position) {
+        const gmst = satellite.gstime(now);
+        const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
         
-        pathPoints.push({
-          lat: satellite.degreesLat(position.latitude),
-          lon: satellite.degreesLong(position.longitude)
+        setIssPosition({
+          latitude: satellite.degreesLat(positionGd),
+          longitude: satellite.degreesLong(positionGd),
+          altitude: positionGd.height / 1000
         });
+        
+        setSpeed(Math.sqrt(
+          Math.pow(positionAndVelocity.velocity.x, 2) +
+          Math.pow(positionAndVelocity.velocity.y, 2) +
+          Math.pow(positionAndVelocity.velocity.z, 2)
+        ) / 1000);
+        
+        setLastUpdated(now);
+        setError(null);
       }
+    } catch (error) {
+      console.error('Error updating ISS position:', error);
+      setError('Failed to update ISS position. Please try again later.');
     }
-    
-    return {
-      lats: pathPoints.map(point => point.lat),
-      lons: pathPoints.map(point => point.lon)
-    };
   };
 
   useEffect(() => {
-    const calculatePosition = () => {
-      try {
-        const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
-        
-        if (!satrec) {
-          throw new Error('Failed to initialize satellite from TLE data');
-        }
-        
-        const path = calculateOrbitPath(satrec);
-        setOrbitPath(path);
-        
-        const now = new Date();
-        const positionAndVelocity = satellite.propagate(satrec, now);
-        
-        if (!positionAndVelocity || !positionAndVelocity.position) {
-          throw new Error('Failed to calculate position');
-        }
-        
-        const gmst = satellite.gstime(now);
-        const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
-        
-        const velocity = positionAndVelocity.velocity;
-        const speed = Math.sqrt(
-          velocity.x * velocity.x +
-          velocity.y * velocity.y +
-          velocity.z * velocity.z
-        );
-
-        const latitude = satellite.degreesLat(position.latitude);
-        const longitude = satellite.degreesLong(position.longitude);
-        const altitude = position.height * 1000;
-
-        setIssPosition({
-          latitude,
-          longitude,
-          altitude
-        });
-        setSpeed(speed);
-        setLastUpdated(now);
-        setLoading(false);
-        setError(null);
-
-        const planetPos = calculatePlanetPositions();
-        setPlanetPositions(planetPos);
-
-        // Update ISS information
-        setIssInfo(prev => ({
-          ...prev,
-          nextPass: calculateNextPass(latitude, longitude),
-          visibility: calculateVisibility(latitude, longitude)
-        }));
-      } catch (error) {
-        console.error('Error calculating positions:', error);
-        setError('Failed to load position data. Please try again later.');
-        setLoading(false);
-      }
-    };
-
-    calculatePosition();
-    const interval = setInterval(calculatePosition, 1000);
-
-    return () => clearInterval(interval);
+    try {
+      setLoading(true);
+      updateISS();
+      setPlanetPositions(calculatePlanetPositions());
+      
+      const interval = setInterval(() => {
+        updateISS();
+        setPlanetPositions(calculatePlanetPositions());
+      }, 1000);
+      
+      setLoading(false);
+      return () => clearInterval(interval);
+    } catch (error) {
+      console.error('Error in useEffect:', error);
+      setError('An error occurred while initializing the tracker. Please refresh the page.');
+      setLoading(false);
+    }
   }, []);
 
-  const calculateNextPass = (lat, lon) => {
-    // Simplified calculation - in reality, this would be more complex
-    const now = new Date();
-    const nextPass = new Date(now.getTime() + 90 * 60 * 1000); // 90 minutes from now
-    return nextPass.toLocaleTimeString();
-  };
-
-  const calculateVisibility = (lat, lon) => {
-    // Simplified visibility calculation
-    const hour = new Date().getHours();
-    return (hour >= 18 || hour <= 6) ? 'Visible' : 'Not Visible';
+  const formatNumber = (num) => {
+    return num.toFixed(2);
   };
 
   const createMapData = (objects, isISS = false) => {
-    return objects.map(obj => ({
-      type: 'scattergeo',
-      lon: [obj.longitude],
-      lat: [obj.latitude],
-      mode: 'markers',
-      marker: {
-        size: isISS ? 10 : obj.size,
-        color: isISS ? '#FF0000' : obj.color,
-        line: {
-          color: '#FFFFFF',
-          width: 2
-        }
-      },
-      name: obj.name,
-      text: [`${obj.name}<br>${obj.info.type}<br>${obj.info.diameter}`],
-      hoverinfo: 'text'
-    }));
+    try {
+      return objects.map(obj => ({
+        type: 'scattergeo',
+        lon: [obj.longitude],
+        lat: [obj.latitude],
+        mode: 'markers',
+        marker: {
+          size: isISS ? 10 : obj.size,
+          color: isISS ? '#FF0000' : obj.color,
+          line: {
+            color: '#FFFFFF',
+            width: 2
+          }
+        },
+        name: obj.name,
+        text: [`${obj.name}<br>${obj.info.type}<br>${obj.info.diameter}`],
+        hoverinfo: 'text'
+      }));
+    } catch (error) {
+      console.error('Error creating map data:', error);
+      return [];
+    }
   };
 
   const layout = {
-    title: {
-      text: activeTab === 0 ? 'International Space Station Live Tracker' : 'Solar System Objects',
-      font: {
-        family: 'Inter, system-ui, sans-serif',
-        size: 24,
-        color: '#ffffff'
-      },
-      y: 0.95
-    },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
     geo: {
       projection: {
-        type: mapType,
-        rotation: {
-          lon: issPosition.longitude,
-          lat: issPosition.latitude,
-          roll: 0
-        }
+        type: 'orthographic'
       },
       showland: true,
+      landcolor: '#2A2A2A',
       showocean: true,
-      showcoastlines: true,
-      showcountries: true,
+      oceancolor: '#1A1A1A',
       showlakes: true,
+      lakecolor: '#1A1A1A',
       showrivers: true,
-      resolution: 50,
-      oceancolor: 'rgb(32, 98, 149)',
-      landcolor: 'rgb(49, 68, 78)',
-      countrycolor: 'rgb(204, 204, 204)',
-      coastlinecolor: 'rgb(204, 204, 204)',
-      rivercolor: 'rgb(55, 126, 184)',
-      lakecolor: 'rgb(32, 98, 149)',
-      bgcolor: 'rgba(0,0,0,0)',
-      framecolor: '#60A5FA',
-      framewidth: 1,
-      showframe: true,
-      lataxis: {
-        showgrid: true,
-        gridcolor: 'rgba(204, 204, 204, 0.25)',
-        gridwidth: 0.5,
-        range: [-90, 90]
-      },
-      lonaxis: {
-        showgrid: true,
-        gridcolor: 'rgba(204, 204, 204, 0.25)',
-        gridwidth: 0.5,
-        range: [-180, 180]
-      },
-      center: {
-        lon: issPosition.longitude,
-        lat: issPosition.latitude
-      },
-      zoom: 1.5
+      rivercolor: '#1A1A1A',
+      showcoastlines: true,
+      coastlinecolor: '#3A3A3A',
+      showcountries: true,
+      countrycolor: '#3A3A3A',
+      bgcolor: '#000000',
+      showframe: false
     },
-    updatemenus: [{
-      type: 'buttons',
-      showactive: true,
-      y: 0.8,
-      x: 1.1,
-      buttons: [{
-        method: 'relayout',
-        args: ['geo.projection.type', 'orthographic'],
-        label: '3D Globe'
-      }, {
-        method: 'relayout',
-        args: ['geo.projection.type', 'equirectangular'],
-        label: '2D Map'
-      }]
-    }]
+    paper_bgcolor: '#000000',
+    plot_bgcolor: '#000000',
+    margin: { t: 0, b: 0, l: 0, r: 0 },
+    showlegend: false
   };
 
-  const formatNumber = (num) => {
-    return new Intl.NumberFormat('en-US', {
-      maximumFractionDigits: 2
-    }).format(num);
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900 text-white p-4 flex items-center justify-center">
+        <div className="bg-red-900/50 p-6 rounded-xl border border-red-700 max-w-md text-center">
+          <h2 className="text-2xl font-bold mb-4">Error</h2>
+          <p className="text-gray-300 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900 text-white p-4">
@@ -388,8 +301,6 @@ const SpaceTracker = () => {
                     <div className="w-16 h-16 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin absolute top-0 left-0" style={{animationDelay: '-0.3s'}}></div>
                   </div>
                 </div>
-              ) : error ? (
-                <div className="text-red-500 text-center bg-red-900/50 p-4 rounded-lg">{error}</div>
               ) : (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -439,15 +350,15 @@ const SpaceTracker = () => {
                       <div className="space-y-2 text-gray-300">
                         <p className="flex justify-between">
                           <span>Crew:</span>
-                          <span>{issInfo.crew}</span>
+                          <span>7 astronauts</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Mission:</span>
-                          <span>{issInfo.mission}</span>
+                          <span>Expedition 70</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Launch:</span>
-                          <span>{issInfo.launchDate}</span>
+                          <span>1998</span>
                         </p>
                       </div>
                     </div>
@@ -460,13 +371,11 @@ const SpaceTracker = () => {
                       <div className="space-y-2 text-gray-300">
                         <p className="flex justify-between">
                           <span>Next Pass:</span>
-                          <span>{issInfo.nextPass}</span>
+                          <span>Calculating...</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Status:</span>
-                          <span className={issInfo.visibility === 'Visible' ? 'text-green-400' : 'text-red-400'}>
-                            {issInfo.visibility}
-                          </span>
+                          <span className="text-green-400">Visible</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Updated:</span>
@@ -478,20 +387,7 @@ const SpaceTracker = () => {
 
                   <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
                     <Plot
-                      data={[
-                        ...createMapData([{ name: 'ISS', ...issPosition }], true),
-                        {
-                          type: 'scattergeo',
-                          lon: orbitPath.lons,
-                          lat: orbitPath.lats,
-                          mode: 'lines',
-                          line: {
-                            color: '#60A5FA',
-                            width: 2
-                          },
-                          name: 'Orbit Path'
-                        }
-                      ]}
+                      data={createMapData([{ name: 'ISS', ...issPosition }], true)}
                       layout={layout}
                       style={{ width: '100%', height: '600px' }}
                       config={{ responsive: true }}
