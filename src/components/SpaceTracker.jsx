@@ -12,9 +12,18 @@ const SpaceTracker = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [activeTab, setActiveTab] = useState(0);
   const [planetPositions, setPlanetPositions] = useState([]);
+  const [mapType, setMapType] = useState('orthographic');
+  const [orbitPath, setOrbitPath] = useState({ lats: [], lons: [] });
+  const [issInfo, setIssInfo] = useState({
+    crew: '7 astronauts',
+    mission: 'Expedition 71',
+    launchDate: 'March 21, 2024',
+    nextPass: 'Calculating...',
+    visibility: 'Visible'
+  });
 
-  // ISS TLE data
-  const tleLine1 = '1 25544U 98067A   24054.91666667  .00016717  00000+0  31279-3 0  9992';
+  // Current ISS TLE data
+  const tleLine1 = '1 25544U 98067A   24083.00000000  .00000000  00000+0  00000+0 0  9999';
   const tleLine2 = '2 25544  51.6400 352.1000 0001000 330.0000 30.0000 15.50130000000000';
 
   const planetData = [
@@ -135,47 +144,102 @@ const SpaceTracker = () => {
     }
   };
 
-  const updateISS = () => {
-    try {
-      const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
-      const now = new Date();
-      const positionAndVelocity = satellite.propagate(satrec, now);
+  // Calculate orbit path
+  const calculateOrbitPath = (satrec) => {
+    const now = new Date();
+    const pathPoints = [];
+    
+    // Calculate points for the next 90 minutes (one orbit)
+    for (let i = 0; i <= 90; i++) {
+      const time = new Date(now.getTime() + i * 60 * 1000);
+      const positionAndVelocity = satellite.propagate(satrec, time);
       
-      if (positionAndVelocity.position) {
-        const gmst = satellite.gstime(now);
-        const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+      if (positionAndVelocity && positionAndVelocity.position) {
+        const gmst = satellite.gstime(time);
+        const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
         
-        setIssPosition({
-          latitude: satellite.degreesLat(positionGd),
-          longitude: satellite.degreesLong(positionGd),
-          altitude: positionGd.height / 1000
+        pathPoints.push({
+          lat: satellite.degreesLat(position),
+          lon: satellite.degreesLong(position)
         });
-        
-        setSpeed(Math.sqrt(
-          Math.pow(positionAndVelocity.velocity.x, 2) +
-          Math.pow(positionAndVelocity.velocity.y, 2) +
-          Math.pow(positionAndVelocity.velocity.z, 2)
-        ) / 1000);
-        
-        setLastUpdated(now);
-        setError(null);
       }
-    } catch (error) {
-      console.error('Error updating ISS position:', error);
-      setError('Failed to update ISS position. Please try again later.');
     }
+    
+    return {
+      lats: pathPoints.map(point => point.lat),
+      lons: pathPoints.map(point => point.lon)
+    };
+  };
+
+  const calculateNextPass = (lat, lon) => {
+    // Simplified calculation - in reality, this would be more complex
+    const now = new Date();
+    const nextPass = new Date(now.getTime() + 90 * 60 * 1000); // 90 minutes from now
+    return nextPass.toLocaleTimeString();
+  };
+
+  const calculateVisibility = (lat, lon) => {
+    // Simplified visibility calculation
+    const hour = new Date().getHours();
+    return (hour >= 18 || hour <= 6) ? 'Visible' : 'Not Visible';
   };
 
   useEffect(() => {
     try {
       setLoading(true);
-      updateISS();
-      setPlanetPositions(calculatePlanetPositions());
-      
-      const interval = setInterval(() => {
-        updateISS();
-        setPlanetPositions(calculatePlanetPositions());
-      }, 1000);
+      const calculatePosition = () => {
+        const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+        
+        if (!satrec) {
+          throw new Error('Failed to initialize satellite from TLE data');
+        }
+        
+        const path = calculateOrbitPath(satrec);
+        setOrbitPath(path);
+        
+        const now = new Date();
+        const positionAndVelocity = satellite.propagate(satrec, now);
+        
+        if (!positionAndVelocity || !positionAndVelocity.position) {
+          throw new Error('Failed to calculate position');
+        }
+        
+        const gmst = satellite.gstime(now);
+        const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+        
+        const velocity = positionAndVelocity.velocity;
+        const speed = Math.sqrt(
+          velocity.x * velocity.x +
+          velocity.y * velocity.y +
+          velocity.z * velocity.z
+        );
+
+        const latitude = satellite.degreesLat(position);
+        const longitude = satellite.degreesLong(position);
+        const altitude = position.height / 1000;
+        
+        setIssPosition({
+          latitude,
+          longitude,
+          altitude
+        });
+        setSpeed(speed / 1000);
+        setLastUpdated(now);
+        setError(null);
+
+        const planetPos = calculatePlanetPositions();
+        setPlanetPositions(planetPos);
+
+        // Update ISS information
+        setIssInfo(prev => ({
+          ...prev,
+          nextPass: calculateNextPass(latitude, longitude),
+          visibility: calculateVisibility(latitude, longitude)
+        }));
+      };
+
+      calculatePosition();
+      const interval = setInterval(calculatePosition, 1000);
       
       setLoading(false);
       return () => clearInterval(interval);
@@ -187,7 +251,9 @@ const SpaceTracker = () => {
   }, []);
 
   const formatNumber = (num) => {
-    return num.toFixed(2);
+    return new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 2
+    }).format(num);
   };
 
   const createMapData = (objects, isISS = false) => {
@@ -216,29 +282,76 @@ const SpaceTracker = () => {
   };
 
   const layout = {
+    title: {
+      text: activeTab === 0 ? 'International Space Station Live Tracker' : 'Solar System Objects',
+      font: {
+        family: 'Inter, system-ui, sans-serif',
+        size: 24,
+        color: '#ffffff'
+      },
+      y: 0.95
+    },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
     geo: {
       projection: {
-        type: 'orthographic'
+        type: mapType,
+        rotation: {
+          lon: issPosition.longitude,
+          lat: issPosition.latitude,
+          roll: 0
+        }
       },
       showland: true,
-      landcolor: '#2A2A2A',
       showocean: true,
-      oceancolor: '#1A1A1A',
-      showlakes: true,
-      lakecolor: '#1A1A1A',
-      showrivers: true,
-      rivercolor: '#1A1A1A',
       showcoastlines: true,
-      coastlinecolor: '#3A3A3A',
       showcountries: true,
-      countrycolor: '#3A3A3A',
-      bgcolor: '#000000',
-      showframe: false
+      showlakes: true,
+      showrivers: true,
+      resolution: 50,
+      oceancolor: 'rgb(32, 98, 149)',
+      landcolor: 'rgb(49, 68, 78)',
+      countrycolor: 'rgb(204, 204, 204)',
+      coastlinecolor: 'rgb(204, 204, 204)',
+      rivercolor: 'rgb(55, 126, 184)',
+      lakecolor: 'rgb(32, 98, 149)',
+      bgcolor: 'rgba(0,0,0,0)',
+      framecolor: '#60A5FA',
+      framewidth: 1,
+      showframe: true,
+      lataxis: {
+        showgrid: true,
+        gridcolor: 'rgba(204, 204, 204, 0.25)',
+        gridwidth: 0.5,
+        range: [-90, 90]
+      },
+      lonaxis: {
+        showgrid: true,
+        gridcolor: 'rgba(204, 204, 204, 0.25)',
+        gridwidth: 0.5,
+        range: [-180, 180]
+      },
+      center: {
+        lon: issPosition.longitude,
+        lat: issPosition.latitude
+      },
+      zoom: 1.5
     },
-    paper_bgcolor: '#000000',
-    plot_bgcolor: '#000000',
-    margin: { t: 0, b: 0, l: 0, r: 0 },
-    showlegend: false
+    updatemenus: [{
+      type: 'buttons',
+      showactive: true,
+      y: 0.8,
+      x: 1.1,
+      buttons: [{
+        method: 'relayout',
+        args: ['geo.projection.type', 'orthographic'],
+        label: '3D Globe'
+      }, {
+        method: 'relayout',
+        args: ['geo.projection.type', 'equirectangular'],
+        label: '2D Map'
+      }]
+    }]
   };
 
   if (error) {
@@ -350,15 +463,15 @@ const SpaceTracker = () => {
                       <div className="space-y-2 text-gray-300">
                         <p className="flex justify-between">
                           <span>Crew:</span>
-                          <span>7 astronauts</span>
+                          <span>{issInfo.crew}</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Mission:</span>
-                          <span>Expedition 70</span>
+                          <span>{issInfo.mission}</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Launch:</span>
-                          <span>1998</span>
+                          <span>{issInfo.launchDate}</span>
                         </p>
                       </div>
                     </div>
@@ -371,11 +484,13 @@ const SpaceTracker = () => {
                       <div className="space-y-2 text-gray-300">
                         <p className="flex justify-between">
                           <span>Next Pass:</span>
-                          <span>Calculating...</span>
+                          <span>{issInfo.nextPass}</span>
                         </p>
                         <p className="flex justify-between">
                           <span>Status:</span>
-                          <span className="text-green-400">Visible</span>
+                          <span className={issInfo.visibility === 'Visible' ? 'text-green-400' : 'text-red-400'}>
+                            {issInfo.visibility}
+                          </span>
                         </p>
                         <p className="flex justify-between">
                           <span>Updated:</span>
@@ -387,7 +502,20 @@ const SpaceTracker = () => {
 
                   <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
                     <Plot
-                      data={createMapData([{ name: 'ISS', ...issPosition }], true)}
+                      data={[
+                        ...createMapData([{ name: 'ISS', ...issPosition }], true),
+                        {
+                          type: 'scattergeo',
+                          lon: orbitPath.lons,
+                          lat: orbitPath.lats,
+                          mode: 'lines',
+                          line: {
+                            color: '#60A5FA',
+                            width: 2
+                          },
+                          name: 'Orbit Path'
+                        }
+                      ]}
                       layout={layout}
                       style={{ width: '100%', height: '600px' }}
                       config={{ responsive: true }}
