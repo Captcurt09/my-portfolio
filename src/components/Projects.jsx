@@ -32,16 +32,17 @@ const Projects = () => {
       ]
     },
     {
-      title: "Project 3",
-      description: "Description of your third project. What problems did it solve? What did you learn?",
-      image: "/images/placeholder.svg",
-      technologies: ["Technology 1", "Technology 2", "Technology 3"],
-      demoLink: "https://project3-demo.com",
-      githubLink: "https://github.com/yourusername/project3",
+      title: "Recipe Finder",
+      description: "A modern recipe search application that helps users discover new recipes based on ingredients or keywords. Features include recipe details, cooking instructions, and the ability to save favorites.",
+      image: "./images/recipe-finder.svg",
+      technologies: ["React", "Spoonacular API", "Tailwind CSS", "React Icons"],
+      demoLink: "/online-portfolio/recipe-finder",
+      githubLink: "https://github.com/Captcurt09/online-portfolio",
       features: [
-        "Feature 1 description",
-        "Feature 2 description",
-        "Feature 3 description"
+        "Search recipes by ingredients or keywords",
+        "View detailed recipe information",
+        "Save favorite recipes",
+        "Responsive design for all devices"
       ]
     }
     // Add more projects as needed

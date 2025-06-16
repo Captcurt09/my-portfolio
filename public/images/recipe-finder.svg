@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f3f4f6"/>
+  
+  <!-- Kitchen Elements -->
+  <g transform="translate(400, 200)">
+    <!-- Plate -->
+    <circle cx="0" cy="0" r="100" fill="#e5e7eb"/>
+    <circle cx="0" cy="0" r="90" fill="#ffffff"/>
+    
+    <!-- Fork -->
+    <g transform="translate(-120, -80) rotate(45)">
+      <rect x="0" y="0" width="8" height="120" fill="#94a3b8"/>
+      <rect x="-4" y="0" width="16" height="8" fill="#94a3b8"/>
+      <rect x="-4" y="16" width="16" height="8" fill="#94a3b8"/>
+      <rect x="-4" y="32" width="16" height="8" fill="#94a3b8"/>
+    </g>
+    
+    <!-- Knife -->
+    <g transform="translate(120, -80) rotate(-45)">
+      <rect x="0" y="0" width="8" height="120" fill="#94a3b8"/>
+      <path d="M0 0 L40 0 L0 40 Z" fill="#94a3b8"/>
+    </g>
+    
+    <!-- Food -->
+    <g transform="translate(0, -20)">
+      <!-- Main Dish -->
+      <circle cx="0" cy="0" r="40" fill="#f59e0b"/>
+      <circle cx="0" cy="0" r="35" fill="#d97706"/>
+      
+      <!-- Garnish -->
+      <circle cx="-20" cy="-20" r="10" fill="#22c55e"/>
+      <circle cx="20" cy="-20" r="10" fill="#22c55e"/>
+      <circle cx="0" cy="20" r="10" fill="#22c55e"/>
+    </g>
+  </g>
+  
+  <!-- Recipe Book -->
+  <g transform="translate(200, 100)">
+    <rect x="0" y="0" width="120" height="160" fill="#4b5563"/>
+    <rect x="10" y="10" width="100" height="140" fill="#ffffff"/>
+    <line x1="30" y1="40" x2="90" y2="40" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="30" y1="60" x2="90" y2="60" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="30" y1="80" x2="90" y2="80" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="30" y1="100" x2="90" y2="100" stroke="#94a3b8" stroke-width="2"/>
+  </g>
+  
+  <!-- Search Icon -->
+  <g transform="translate(600, 100)">
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#3b82f6" stroke-width="8"/>
+    <line x1="30" y1="30" x2="50" y2="50" stroke="#3b82f6" stroke-width="8"/>
+  </g>
+</svg> 
