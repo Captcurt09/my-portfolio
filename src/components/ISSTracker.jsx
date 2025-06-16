@@ -23,12 +23,17 @@ const Starfield = () => {
     const createStars = () => {
       const stars = [];
       for (let i = 0; i < 200; i++) {
+        // Random star color between white and light blue
+        const color = Math.random() > 0.8 ? '#a8d8ff' : '#ffffff';
         stars.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          size: Math.random() * 2 + 1,
-          speed: Math.random() * 0.5 + 0.1,
-          opacity: Math.random() * 0.5 + 0.5
+          size: Math.random() * 3 + 0.5, // More varied sizes
+          speed: Math.random() * 0.3 + 0.1, // Slower, more varied speeds
+          opacity: Math.random() * 0.7 + 0.3, // More varied opacity
+          color: color,
+          twinkleSpeed: Math.random() * 0.02 + 0.01, // Twinkling effect
+          twinkleDirection: Math.random() > 0.5 ? 1 : -1
         });
       }
       return stars;
@@ -38,13 +43,20 @@ const Starfield = () => {
 
     // Animation function
     const animate = () => {
-      ctx.fillStyle = 'rgba(17, 24, 39, 0.1)';
+      // Clear the entire canvas with a solid color
+      ctx.fillStyle = 'rgb(17, 24, 39)';
       ctx.fillRect(0, 0, width, height);
 
       starsRef.current.forEach(star => {
+        // Update opacity for twinkling effect
+        star.opacity += star.twinkleSpeed * star.twinkleDirection;
+        if (star.opacity > 1 || star.opacity < 0.3) {
+          star.twinkleDirection *= -1;
+        }
+
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+        ctx.fillStyle = `${star.color}${Math.floor(star.opacity * 255).toString(16).padStart(2, '0')}`;
         ctx.fill();
 
         // Move star
