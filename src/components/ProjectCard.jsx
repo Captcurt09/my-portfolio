@@ -39,14 +39,16 @@ const ProjectCard = ({ title, description, image, technologies, demoLink, github
             ))}
           </div>
         </div>
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features:</h4>
-          <ul className="list-disc list-inside text-sm text-gray-600">
-            {features.map((feature, index) => (
-              <li key={index}>{feature}</li>
-            ))}
-          </ul>
-        </div>
+        {features && features.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features:</h4>
+            <ul className="list-disc list-inside text-sm text-gray-600">
+              {features.map((feature, index) => (
+                <li key={index}>{feature}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="flex gap-4 mt-6">
           {demoLink ? (
             isInternalLink ? (

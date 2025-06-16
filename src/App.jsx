@@ -6,9 +6,8 @@ import ErrorBoundary from './components/ErrorBoundary'
 
 // Lazy load components
 const Sections = lazy(() => import('./components/Sections'))
-const Projects = lazy(() => import('./components/Projects'))
 const PlanetTracker = lazy(() => import('./components/PlanetTracker'))
-const SpaceTracker = lazy(() => import('./components/SpaceTracker'))
+const ISSTracker = lazy(() => import('./components/ISSTracker'))
 
 // Loading component
 const LoadingSpinner = () => (
@@ -24,7 +23,7 @@ const LoadingSpinner = () => (
 const Layout = ({ children }) => {
   const location = useLocation();
   const isProjectPage = location.pathname.includes('/planet-tracker') || 
-                       location.pathname.includes('/space-tracker');
+                       location.pathname.includes('/iss-tracker');
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -49,7 +48,7 @@ function App() {
           <Route path="/" element={<Sections />} />
           <Route path="/online-portfolio" element={<Sections />} />
           <Route path="/online-portfolio/planet-tracker" element={<PlanetTracker />} />
-          <Route path="/online-portfolio/space-tracker" element={<SpaceTracker />} />
+          <Route path="/online-portfolio/iss-tracker" element={<ISSTracker />} />
         </Routes>
       </Layout>
     </Router>

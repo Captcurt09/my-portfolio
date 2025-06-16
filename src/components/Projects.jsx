@@ -1,65 +1,61 @@
 import React from 'react';
 import ProjectCard from './ProjectCard';
-import { Link } from 'react-router-dom';
 
 const Projects = () => {
   const projects = [
     {
       title: "Portfolio Website",
-      description: "A modern, responsive portfolio website showcasing my journey as a developer. Built with React and Tailwind CSS, featuring smooth animations, interactive components, and a clean, professional design. The site demonstrates my ability to create engaging user experiences while maintaining performance and accessibility.",
+      description: "My personal portfolio website built with React and Tailwind CSS. This project showcases my learning journey and the skills I'm developing in web development.",
       image: "./images/portfolio-project.svg",
-      technologies: ["React", "Tailwind CSS", "Vite", "JavaScript", "Responsive Design"],
-      demoLink: "/online-portfolio",
+      technologies: ["React", "Tailwind CSS", "Vite", "JavaScript"],
+      demoLink: "https://captcurt09.github.io/online-portfolio/",
       githubLink: "https://github.com/Captcurt09/online-portfolio",
       features: [
         "Responsive design for all devices",
-        "Smooth scrolling and animations",
-        "Interactive project showcase",
-        "Contact form with validation",
-        "SEO optimized"
+        "Interactive UI components",
+        "Smooth animations and transitions",
+        "Project showcase with detailed information"
       ]
     },
     {
-      title: "ISS Tracker & Space Dashboard",
-      description: "An interactive space dashboard that provides real-time tracking of the International Space Station. Features include live orbital visualization, detailed space station information, and historical data analysis. Built with modern web technologies and integrated with NASA's APIs for accurate space data.",
-      image: "./images/space-tracker.svg",
-      technologies: ["React", "Plotly.js", "NASA APIs", "Real-time Data", "WebSocket"],
-      demoLink: "/online-portfolio/space-tracker",
-      githubLink: "https://github.com/Captcurt09/space-tracker",
+      title: "ISS Tracker",
+      description: "A real-time tracker for the International Space Station (ISS) that shows its current position on Earth. Features include live updates, interactive map, and detailed position information.",
+      image: "./images/iss-tracker.svg",
+      technologies: ["React", "Leaflet", "Open Notify API", "Tailwind CSS"],
+      demoLink: "/online-portfolio/iss-tracker",
+      githubLink: "https://github.com/Captcurt09/online-portfolio",
       features: [
-        "Real-time ISS tracking",
-        "Interactive 3D visualization",
-        "Historical data analysis",
-        "Responsive dashboard layout",
-        "Live data updates"
+        "Real-time ISS position tracking",
+        "Interactive world map visualization",
+        "Live position updates every 5 seconds",
+        "Detailed latitude and longitude information"
       ]
     },
     {
-      title: "Solar System Planet Tracker",
-      description: "An educational tool for visualizing and tracking planets in our solar system. Features include real-time orbital positions, detailed planetary information, and interactive 3D visualization of planetary movements. Perfect for astronomy enthusiasts and educational purposes.",
-      image: "./images/planet-tracker.svg",
-      technologies: ["React", "Three.js", "Orbital Mechanics", "Real-time Data", "3D Visualization"],
-      demoLink: "/online-portfolio/planet-tracker",
-      githubLink: "https://github.com/Captcurt09/space-tracker",
+      title: "Project 3",
+      description: "Description of your third project. What problems did it solve? What did you learn?",
+      image: "/images/placeholder.svg",
+      technologies: ["Technology 1", "Technology 2", "Technology 3"],
+      demoLink: "https://project3-demo.com",
+      githubLink: "https://github.com/yourusername/project3",
       features: [
-        "Real-time planet tracking",
-        "3D orbital visualization",
-        "Detailed planetary information",
-        "Interactive controls",
-        "Educational content"
+        "Feature 1 description",
+        "Feature 2 description",
+        "Feature 3 description"
       ]
     }
+    // Add more projects as needed
   ];
 
   return (
-    <section id="projects" className="min-h-screen bg-gray-50 py-20">
+    <section id="projects" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">My Projects</h2>
         <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          Explore my portfolio of web development projects. Each project demonstrates different aspects 
-          of my skills and learning journey, from front-end development to full-stack applications.
+          Here are the projects I've been working on as I learn web development.
+          Each project represents different skills and concepts I'm learning.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project, index) => (
             <ProjectCard key={index} {...project} />
           ))}

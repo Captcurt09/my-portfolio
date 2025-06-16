@@ -13,13 +13,18 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "@types/three": "^0.177.0",
     "framer-motion": "^12.17.3",
+    "leaflet": "^1.9.4",
     "plotly.js": "^2.35.3",
+    "plotly.js-dist": "^3.0.1",
     "plotly.js-dist-min": "^3.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
+    "react-leaflet": "^4.2.1",
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^6.22.3",
     "react-scroll": "^1.9.3",
@@ -40,5 +45,18 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "vite": "^5.1.4"
-  }
+  },
+  "description": "A modern, responsive portfolio website showcasing my journey as a developer. Built with React and Tailwind CSS, featuring smooth animations, interactive components, and a clean, professional design.",
+  "main": "download-textures.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Captcurt09/my-portfolio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Captcurt09/my-portfolio/issues"
+  },
+  "homepage": "https://github.com/Captcurt09/my-portfolio#readme"
 }
